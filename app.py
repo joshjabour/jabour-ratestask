@@ -35,8 +35,8 @@ def hello_geek():
             destinationPortCodes = get_port_codes(destination, connection)
 
         # Format the port codes for use in the SQL query
-        originPortCodes = ','.join([f"{code}" for code in originPortCodes])
-        destinationPortCodes = ','.join([f"{code}" for code in destinationPortCodes])
+        #originPortCodes = ','.join(["'{}'".format(code[0]) for code in originPortCodes])
+        #destinationPortCodes = ", ".join(["'{}'".format(code[0]) for code in destinationPortCodes])
 
         # Get price averages across all ports for each day in the range supplied
         cursor = connection.cursor()
@@ -59,10 +59,11 @@ def hello_geek():
                 days
                 LEFT JOIN prices ON 
                     days.day = prices.day AND
-                    orig_code IN(%s) AND
-                    dest_code IN(%s)
-            GROUP BY days.day;
-            ''', (date_from, date_to, originPortCodes, destinationPortCodes))
+                    orig_code IN %s AND
+                    dest_code IN %s
+            GROUP BY days.day
+            ORDER BY days.day;
+            ''', (date_from, date_to, tuple(originPortCodes), tuple(destinationPortCodes)))
         prices = cursor.fetchall()
         cursor.close()
 
@@ -73,7 +74,7 @@ def hello_geek():
             cursor.close()
         if connection is not None:
             connection.close()
-    return '<h1>Hello from Flask & Docker</h2><p>' + str(prices) + '</p>'
+    return '<h1>Hello from Flask & Docker</h2><p>Prices: ' + str(prices) + '</p>' + '<p>Origin Port Codes: ' + str(originPortCodes) + '</p>' + '<p>Destination Port Codes: ' + str(destinationPortCodes) + '</p>'
 
 def get_port_codes(region_slug, connection):
     cursor = None
