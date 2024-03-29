@@ -1,13 +1,20 @@
 from flask import Flask
+import logging
 import os
 import psycopg2
 app = Flask(__name__)
 
 @app.route('/') 
 def hello_geek():
+    date_from = "2016-01-01"
+    date_to = "2016-01-05"
     origin = "CNSGH"
     destination = "north_europe_main"
     originPortCodes = []
+    destinationPortCodes = []
+    prices = []
+    connection = None
+    cursor = None
     try:
         connection = psycopg2.connect(
             host=os.environ['POSTGRES_DB_HOST'],
@@ -15,40 +22,82 @@ def hello_geek():
             user=os.environ['POSTGRES_USERNAME'],
             password=os.environ['POSTGRES_PASSWORD'])
 
-        # Determine whether the a port code or a region slug was supplied for the origin and destination
+        # Get the port codes for the origin and destination
+        # First, determine whether the a port code or a region slug was supplied for the origin and destination
         # ASSUMPTION: I've defined a port code as an upper-case string with 5 or fewer characters
-        # If a port code was given, use only that port code. If it's a region slug, query the database
-        # for all port codes in that region and its descendants
-        if len(origin) <= 5 and origin.isupper():
-            originPortCodes.append(origin) # Port code was given
-        else:
-            # Region slug was given. Query the database to return the port codes for region and descendants
-            cursor = connection.cursor()
-            cursor.execute("SELECT port_code FROM ports WHERE region_slug = %s", (origin,))
-            originPortCodes = cursor.fetchall()
-            cursor.close()
-            
+        if len(origin) <= 5 and origin.isupper(): # Port code was given
+            originPortCodes.append(origin)
+        else: # Region slug was given. Get the port codes for the region and descendants
+            originPortCodes = get_port_codes(origin, connection)
+        if len(destination) <= 5 and destination.isupper(): # Port code was given
+            destinationPortCodes.append(destination) 
+        else: # Region slug was given. Get the port codes for the region and descendants
+            destinationPortCodes = get_port_codes(destination, connection)
 
-        if len(destination) <= 5 and destination.isupper():
-            destinationPortCodes.append(destination)
+        # Format the port codes for use in the SQL query
+        originPortCodes = ','.join([f"{code}" for code in originPortCodes])
+        destinationPortCodes = ','.join([f"{code}" for code in destinationPortCodes])
+
+        # Get price averages across all ports for each day in the range supplied
+        cursor = connection.cursor()
+        cursor.execute('''
+            -- Generate a series of every day between date_from and date_to 
+            -- so that the results will include all days in the range even if
+            -- there are no records for a particular day in the prices table
+            WITH days AS (
+                SELECT GENERATE_SERIES(%s, %s, interval '1 day')::date AS day
+            )
+            -- Get the average price for each day in the range having at least 3
+            -- records, rounded to the nearest whole number
+            SELECT
+                days.day,
+                CASE
+                    WHEN COUNT(*) >= 3 THEN ROUND(AVG(price))
+                ELSE NULL
+                END AS average_price
+            FROM
+                days
+                LEFT JOIN prices ON 
+                    days.day = prices.day AND
+                    orig_code IN(%s) AND
+                    dest_code IN(%s)
+            GROUP BY days.day;
+            ''', (date_from, date_to, originPortCodes, destinationPortCodes))
+        prices = cursor.fetchall()
+        cursor.close()
 
     except psycopg2.Error as error:
-        print("Error fetching data from the database:", error)
-
+        app.logger.error("Error fetching prices from the database: %s", error)
     finally:
-        if connection:
+        if cursor is not None:
             cursor.close()
+        if connection is not None:
             connection.close()
+    return '<h1>Hello from Flask & Docker</h2><p>' + str(prices) + '</p>'
 
-    # Query the database to return the average prices for the given origin and destination
+def get_port_codes(region_slug, connection):
+    cursor = None
+    port_codes = []
     cursor = connection.cursor()
-    
-    cursor.execute("SELECT port_code FROM ports")
-    destinationPortCodes = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return '<h1>Hello from Flask & Docker' + os.environ['POSTGRES_USERNAME'] + '</h2>'
+    cursor.execute('''
+        WITH RECURSIVE region_tree AS (
+            SELECT slug, parent_slug
+            FROM regions
+            WHERE slug = %s
 
+            UNION ALL
+
+            SELECT regions.slug, regions.parent_slug
+            FROM regions
+            JOIN region_tree ON regions.parent_slug = region_tree.slug
+        )
+        SELECT ports.code
+        FROM ports 
+        INNER JOIN region_tree ON ports.parent_slug = region_tree.slug;
+        ''', (region_slug,))
+    port_codes = cursor.fetchall()
+    cursor.close()
+    return port_codes
 
 if __name__ == "__main__":
     app.run(debug=True)
