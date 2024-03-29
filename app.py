@@ -5,11 +5,14 @@ import psycopg2
 app = Flask(__name__)
 
 @app.route('/') 
-def hello_geek():
+def hello_geek(): # TODO: change the name of this function to something more descriptive
     date_from = "2016-01-01"
     date_to = "2016-01-05"
     origin = "CNSGH"
     destination = "north_europe_main"
+    #alternate test making the origin the region slug and the destination the port code
+    #origin = "china_main"
+    #destination = "NLRTM"
     originPortCodes = []
     destinationPortCodes = []
     prices = []
@@ -33,10 +36,6 @@ def hello_geek():
             destinationPortCodes.append(destination) 
         else: # Region slug was given. Get the port codes for the region and descendants
             destinationPortCodes = get_port_codes(destination, connection)
-
-        # Format the port codes for use in the SQL query
-        #originPortCodes = ','.join(["'{}'".format(code[0]) for code in originPortCodes])
-        #destinationPortCodes = ", ".join(["'{}'".format(code[0]) for code in destinationPortCodes])
 
         # Get price averages across all ports for each day in the range supplied
         cursor = connection.cursor()
@@ -76,6 +75,10 @@ def hello_geek():
             connection.close()
     return '<h1>Hello from Flask & Docker</h2><p>Prices: ' + str(prices) + '</p>' + '<p>Origin Port Codes: ' + str(originPortCodes) + '</p>' + '<p>Destination Port Codes: ' + str(destinationPortCodes) + '</p>'
 
+# Retrieves the port codes for a given region slug and descendants.
+# It uses a recursive query to traverse the region hierarchy.
+# The function takes two parameters: the region slug and the database connection object.
+# It returns a list of port codes associated with the given region.
 def get_port_codes(region_slug, connection):
     cursor = None
     port_codes = []
