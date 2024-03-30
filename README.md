@@ -86,7 +86,7 @@ The application I am submitting is a fully-functional application that performs 
 
 # Feedback on ratestask Repository Setup
 
-I noticed when reviewing the ratestest repository that I can see 14 forked repositories, and I assume they contain solutions. I did not view the code in any of them, but I want to flag this as a vulnerability with the task because someone might be plagiarising without your knowledge (unless you are carefully checking against all forks of the repository). My recommendation is to make the ratestask repository private, disallow forking, and add candidates as contributors when they are to perform the task.
+I noticed when reviewing the ratestest repository that I can see 14 forked repositories, and I assume they contain solutions. I did not view the code in any of them, but I want to flag this as a vulnerability with the task because someone might be plagiarising without your knowledge (unless you are carefully checking against all forks of the repository). My recommendation is to make the ratestask repository private, disallow forking, and add candidates as contributors when they are to perform the task. This will protect against candidates stealing pieces of work from submissions of previous candidates.
 
 # Thank You!
 
