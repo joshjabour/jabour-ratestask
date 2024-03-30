@@ -1,7 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import datetime
 import os
 import psycopg2
+import json
+
 app = Flask(__name__)
 
 @app.route('/rates', methods=['GET']) 
@@ -79,7 +81,7 @@ def get_price_averages():
 
     except psycopg2.Error as error:
         app.logger.error("Error fetching prices from the database: %s", error)
-        return jsonify({'Error': 'Failed to fetch prices from the database'}), 500
+        return jsonify({'Error': 'Failed to fetch prices from the database. Please try again later.'}), 500
     finally:
         if cursor is not None:
             cursor.close()
@@ -87,16 +89,20 @@ def get_price_averages():
             connection.close()
     
     # Convert prices to the desired JSON format
-    # NOTE: The order the order of keys in the response may be "average_price" then "day" instead of 
-    # "day" first then "average_price", because it's not guaranteed. However, the order of keys does not
-    # impact the functionality for API consumers, as long as the data structure is correctly interpreted
-    # on the receiving end
     prices_json = [
         {'day': row[0].strftime('%Y-%m-%d'), 'average_price': int(row[1]) if row[1] is not None else None}
         for row in prices
     ]
+
+    # Use json.dumps to convert the dictionary to a JSON string
+    # Set sort_keys to False (the default, but explicitly marked here for clarity) to keep the order of
+    # keys in the response JSON # in the same order as required based on the task details.
+    # NOTE: The order the order of keys in the response does not impact the 
+    # functionality for API consumers, but this explicit ordering is for ease of testing the output
+    response_json = json.dumps(prices_json, sort_keys=False)
     
-    return jsonify(prices_json)
+    # Create a Flask Response object and set the content type to 'application/json'
+    return Response(response_json, content_type='application/json; charset=utf-8')
 
 # Retrieves the port codes for a given region slug and descendants.
 # It uses a recursive query to traverse the region hierarchy.
