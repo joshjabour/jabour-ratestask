@@ -33,18 +33,9 @@ Once the containers have started you can access the API by running a curl comman
 curl "http://127.0.0.1/rates?date_from=2016-01-01&date_to=2016-01-10&origin=CNSGH&destination=north_europe_main"
 ```
 
-For some lite automated testing you can run this:
+For some lite automated testing you can run pytest:
 ```bash
 docker run --rm ratesapp pytest
-```
-
-When you’re finished you can use the following command to shut down the containers and remove them:
-
-```bash
-docker stop ratesdb
-docker stop ratesapp
-docker rm ratesdb
-docker rm ratesapp
 ```
 
 # API Spec
