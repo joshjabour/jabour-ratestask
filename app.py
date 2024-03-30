@@ -49,25 +49,25 @@ def get_price_averages():
         # For origin:
         if len(origin) <= 5 and origin.isupper():  # Port code was given
             if not port_code_exists(origin, connection):
-                app.logger.error(f"Port code {origin} does not exist.")
-                return jsonify({"Error": f"Port code {origin} does not exist."}), 400
+                app.logger.error(f"Port {origin} does not exist.")
+                return jsonify({"Error": f"Port {origin} does not exist."}), 400
             originPortCodes.append(origin)
         else:  # Region slug was given. Get the port codes for the region and descendants
             if not slug_exists(origin, connection):
                 app.logger.error(f"Region {origin} does not exist.")
-                return jsonify({"Error": f"Region slug {origin} does not exist."}), 400
+                return jsonify({"Error": f"Region {origin} does not exist."}), 400
             originPortCodes = get_port_codes(origin, connection)
         
         # For destination:
         if len(destination) <= 5 and destination.isupper():  # Port code was given
             if not port_code_exists(destination, connection):
-                app.logger.error(f"Port code {destination} does not exist.")
-                return jsonify({"Error": f"Port code {destination} does not exist."}), 400
+                app.logger.error(f"Port {destination} does not exist.")
+                return jsonify({"Error": f"Port {destination} does not exist."}), 400
             destinationPortCodes.append(destination)
         else:  # Region slug was given. Get the port codes for the region and descendants
             if not slug_exists(destination, connection):
                 app.logger.error(f"Region {destination} does not exist.")
-                return jsonify({"Error": f"Region slug {destination} does not exist."}), 400
+                return jsonify({"Error": f"Region {destination} does not exist."}), 400
             destinationPortCodes = get_port_codes(destination, connection)
 
         # Get price averages across all ports for each day in the range supplied
