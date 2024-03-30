@@ -53,7 +53,7 @@ Every API endpoint must have documentation. As such, I have included an API spec
 
 # Test Cases and Results
 
-I wouldn't normally include these in a readme file, but I'm sharing them here because I want to explain the tests I've performed and their results.
+I wouldn't normally include test cases in a readme file, but in the effort to make this work submission complete I am sharing documentation of the tests I've performed and their results.
 
 | Test Case | date_from  | date_to    | origin           | destination       | Results                                                                                   | Pass/Fail |
 |-----------|------------|------------|------------------|-------------------|--------------------------------------------------------------------------------------------|-----------|
@@ -62,11 +62,11 @@ I wouldn't normally include these in a readme file, but I'm sharing them here be
 | 3         | 2016-01-01 | 2016-01-10 | china_main       | NLRTM             | PASS (checked results using manual queries)                                               | PASS      |
 | 4         | 2016-01-01 | 2016-01-10 | china_main       | northern_europe   | PASS (checked results using manual queries)                                               | PASS      |
 | 5         | 2016-01-01 | 2016-01-10 | CNGGZ            | EETLL             | PASS (checked results using manual queries)                                               | PASS      |
-| 6         | *2016-01-10* | *2016-01-01* | CNGGZ            | EETLL             | "Error": "Invalid date range. The date_from must be earlier than the date_to"             | PASS      |
-| 7         | *2016-13-01* | *2016-13-10* | CNGGZ            | EETLL             | "Error": "Invalid date format"                                                            | PASS      |
-| 8         | 2016-01-01 | 2016-01-10 | CNGGZ            | *Null*              | "Error": "Missing query parameters"                                                       | PASS      |
-| 9         | 2016-01-01 | 2016-01-10 | CNGGZ            | *XXXXX*             | "Error": "Port code XXXXX does not exist."                                                | PASS      |
-| 10        | 2016-01-01 | 2016-01-10 | CNGGZ            | *northern_europ*    | "Error": "Region northern_europ does not exist."                                          | PASS      |
+| 6         | **2016-01-10** | **2016-01-01** | CNGGZ            | EETLL             | "Error": "Invalid date range. The date_from must be earlier than the date_to"             | PASS      |
+| 7         | **2016-13-01** | **2016-13-10** | CNGGZ            | EETLL             | "Error": "Invalid date format"                                                            | PASS      |
+| 8         | 2016-01-01 | 2016-01-10 | CNGGZ            | **Null**              | "Error": "Missing query parameters"                                                       | PASS      |
+| 9         | 2016-01-01 | 2016-01-10 | CNGGZ            | **XXXXX**             | "Error": "Port code XXXXX does not exist."                                                | PASS      |
+| 10        | 2016-01-01 | 2016-01-10 | CNGGZ            | **northern_europ**    | "Error": "Region northern_europ does not exist."                                          | PASS      |
 
 # Time Spent
 
@@ -74,16 +74,20 @@ I spent 6 hours writing the code for this application. After that, I performed s
 
 # Difficulties
 
-1. My first difficulty arose when I tried to use only SQL to determine whether the origin/destination input was a port code or slug, and that resulted in some lost time. SQL is not well suited for that kind of logic. I determined a way to do it, but when I saw the complexity I knew it failed the simplicity test. I removed the SQL and wrote python code for the task. It is now much cleaner.
-1. I had a challenge setting up my docker containers because I put environment variables at the beginning of the dockerfile. This caused the build to fail, and took me a few minutes to resolve.
+1. Initially, I tried to use only SQL to determine whether the origin and destination inputs were a port codes or slugs, and that resulted in some lost time. I found a way to make it work, but the code was too complex. To resolve this, I removed the SQL and wrote python code for the task. The python code is much cleaner.
+1. I had a challenge setting up my docker containers because I tried to set environment variables at the top of the dockerfile. This caused the build to fail, and that error took me a few minutes to resolve.
 
 # Opportunities for Improving this Application
 
-The application I am submitting is a fully-functional application that performs as required. However, given more time there are additional steps that could be taken to improve the application:
+The application I am submitting is a fully-functional application that performs as required. However, given more time there are additional steps that I would take to improve the application:
 1. Instead of having to set up a network and running two docker containers separately, they should be combined and run using one docker-compose command.
 1. I've included some basic pytest automated tests to check for input errors. However, these tests do not fully test the application. Additional tests that mock the database are needed to provide complete coverage.
-1. One potential improvement for the API response is during the case that the origin and destination are valid but have no price entries for the given period. My application currently returning the dates and a null for each date in that case, but it could be more user-friendly to provide a succinct message in this scenario.
+1. One potential improvement for the API response is during the case that the origin and destination are valid but have no price data for the given period. Given that scenario, my application currently returns a null average_price for each date. But it might be more user-friendly to provide a succinct message stating that there are no prices matching the given parameters.
 
 # Feedback on ratestask Repository Setup
 
-I noticed when reviewing the ratestest repository that I can see 14 forked repositories (I assume they contain solutions). I did not view the code in any of them, but I want to flag this as a vulnerability with the task because someone might be plagiarising without your knowledge (unless you are carefully checking against all forks of the repository). My recommendation is to make the ratestask repository private, disallow forking, and add candidates as contributors when they are to perform the task.
+I noticed when reviewing the ratestest repository that I can see 14 forked repositories, and I assume they contain solutions. I did not view the code in any of them, but I want to flag this as a vulnerability with the task because someone might be plagiarising without your knowledge (unless you are carefully checking against all forks of the repository). My recommendation is to make the ratestask repository private, disallow forking, and add candidates as contributors when they are to perform the task.
+
+# Thank You!
+
+Thank you for viewing this submission! I thoroughly enjoyed completing this task, and I appreciate your time for reviewing it.
