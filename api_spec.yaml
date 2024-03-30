@@ -1,0 +1,112 @@
+openapi: 3.0.0
+info:
+  title: Rates API
+  version: 1.0.0
+  description: This API provides average price information based on shipping data.
+servers:
+  - url: http://localhost/
+    description: Local development server
+paths:
+  /rates:
+    get:
+      summary: Get average prices
+      description: Retrieves the average prices between two dates for given origin and destination ports or regions.
+      operationId: getAveragePrices
+      parameters:
+        - name: date_from
+          in: query
+          description: Start date for the price average calculation.
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2016-01-01"
+        - name: date_to
+          in: query
+          description: End date for the price average calculation.
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2016-01-10"
+        - name: origin
+          in: query
+          description: Origin port code or region slug.
+          required: true
+          schema:
+            type: string
+          example: "CNSGH"
+        - name: destination
+          in: query
+          description: Destination port code or region slug.
+          required: true
+          schema:
+            type: string
+          example: "north_europe_main"
+      responses:
+        '200':
+          description: Successfully retrieved average prices.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    day:
+                      type: string
+                      format: date
+                      example: "2016-01-01"
+                    average_price:
+                      type: integer
+                      nullable: true
+                      example: 1112
+                  required:
+                    - day
+                    - average_price
+              examples:
+                success:
+                  value:
+                    - day: '2016-01-01'
+                      average_price: 1112
+                    - day: '2016-01-02'
+                      average_price: 1112
+                    - day: '2016-01-03'
+                      average_price: null
+                    - day: '2016-01-04'
+                      average_price: null
+                    - day: '2016-01-05'
+                      average_price: 1142
+                    - day: '2016-01-06'
+                      average_price: 1142
+                    - day: '2016-01-07'
+                      average_price: 1137
+                    - day: '2016-01-08'
+                      average_price: 1124
+                    - day: '2016-01-09'
+                      average_price: 1124
+                    - day: '2016-01-10'
+                      average_price: 1124
+
+        '400':
+          description: Bad request due to missing or invalid parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                example:
+                  Error: "Missing query parameters"
+        '500':
+          description: Internal server error when fetching prices from the database.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                example:
+                  Error: "Failed to fetch prices from the database."

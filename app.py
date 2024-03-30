@@ -99,7 +99,7 @@ def get_price_averages():
             prices = cursor.fetchall()
     except psycopg2.Error as error:
         app.logger.error("Error fetching prices from the database: %s", error)
-        return jsonify({'Error': 'Failed to fetch prices from the database. Please check your origin and destination.'}), 500
+        return jsonify({'Error': 'Failed to fetch prices from the database.'}), 500
     finally:
         if connection is not None:
             connection.close()
