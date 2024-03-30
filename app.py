@@ -1,23 +1,34 @@
-from flask import Flask
-import logging
+from flask import Flask, request, jsonify
+import datetime
 import os
 import psycopg2
 app = Flask(__name__)
 
-@app.route('/') 
-def hello_geek(): # TODO: change the name of this function to something more descriptive
-    date_from = "2016-01-01"
-    date_to = "2016-01-05"
-    origin = "CNSGH"
-    destination = "north_europe_main"
-    #alternate test making the origin the region slug and the destination the port code
-    #origin = "china_main"
-    #destination = "NLRTM"
+@app.route('/rates', methods=['GET']) 
+def get_price_averages():
+    # Retrieve query parameters
+    date_from = request.args.get('date_from') # for testing, use '2016-01-01'
+    date_to = request.args.get('date_to') # for testing, use '2016-01-05'
+    origin = request.args.get('origin') # for testing, use 'CNSGH' (or 'china_main')
+    destination = request.args.get('destination') # for testing, use 'north_europe_main' (or 'NLRTM')
+    
+    # Check if date_from, date_to, origin, and destination are not empty
+    if not date_from or not date_to or not origin or not destination:
+        return jsonify({'Error': 'Missing query parameters'}), 400
+    # Check if date_from and date_to are in the correct format
+    try:
+        datetime.datetime.strptime(date_from, '%Y-%m-%d')
+        datetime.datetime.strptime(date_to, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'Error': 'Invalid date format'}), 400
+
     originPortCodes = []
     destinationPortCodes = []
     prices = []
+    
     connection = None
     cursor = None
+
     try:
         connection = psycopg2.connect(
             host=os.environ['POSTGRES_DB_HOST'],
@@ -68,12 +79,24 @@ def hello_geek(): # TODO: change the name of this function to something more des
 
     except psycopg2.Error as error:
         app.logger.error("Error fetching prices from the database: %s", error)
+        return jsonify({'Error': 'Failed to fetch prices from the database'}), 500
     finally:
         if cursor is not None:
             cursor.close()
         if connection is not None:
             connection.close()
-    return '<h1>Hello from Flask & Docker</h2><p>Prices: ' + str(prices) + '</p>' + '<p>Origin Port Codes: ' + str(originPortCodes) + '</p>' + '<p>Destination Port Codes: ' + str(destinationPortCodes) + '</p>'
+    
+    # Convert prices to the desired JSON format
+    # NOTE: The order the order of keys in the response may be "average_price" then "day" instead of 
+    # "day" first then "average_price", because it's not guaranteed. However, the order of keys does not
+    # impact the functionality for API consumers, as long as the data structure is correctly interpreted
+    # on the receiving end
+    prices_json = [
+        {'day': row[0].strftime('%Y-%m-%d'), 'average_price': int(row[1]) if row[1] is not None else None}
+        for row in prices
+    ]
+    
+    return jsonify(prices_json)
 
 # Retrieves the port codes for a given region slug and descendants.
 # It uses a recursive query to traverse the region hierarchy.
