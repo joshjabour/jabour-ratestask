@@ -65,13 +65,13 @@ I spent 6 hours writing the code for this application. After that, I performed s
 
 # Difficulties
 
-1. Initially, I tried to use only SQL to determine whether the origin and destination inputs were a port codes or slugs, and that resulted in some lost time. I found a way to make it work, but the code was too complex. To resolve this, I removed the SQL and wrote python code for the task. The python code is much cleaner.
+1. Initially, I tried to use only SQL to determine whether the origin and destination inputs were port codes or slugs, and that resulted in some lost time. I found a way to make it work, but the code was too complex. To resolve this, I removed the SQL and wrote python code for the task. The python code is much cleaner.
 1. I had a challenge setting up my docker containers because I tried to set environment variables at the top of the dockerfile. This caused the build to fail, and that error took me a few minutes to resolve.
 
 # Opportunities for Improving this Application
 
 The application I am submitting is a fully-functional application that performs as required. However, given more time there are additional steps that I would take to improve the application:
-1. Instead of having to set up a network and running two docker containers separately, they should be combined and run using one docker-compose command.
+1. Instead of having to set up a network and running two docker containers separately, the setup should be consolidated and run using one docker-compose command.
 1. I've included some basic pytest automated tests to check for input errors. However, these tests do not fully test the application. Additional tests that mock the database are needed to provide complete coverage.
 1. One potential improvement for the API response is during the case that the origin and destination are valid but have no price data for the given period. Given that scenario, my application currently returns a null average_price for each date. But it might be more user-friendly to provide a succinct message stating that there are no prices matching the given parameters.
 
